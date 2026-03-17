@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # Build du backend (TypeScript -> JavaScript)
-RUN npm run build -w apps/server
+RUN cd apps/server && ../../node_modules/.bin/tsc
 
 # 2. Étape de Production
 FROM node:20-slim
