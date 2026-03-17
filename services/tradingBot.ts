@@ -249,25 +249,87 @@ export async function runBot(config: BotConfig, state: BotState): Promise<{
 // ── Mock candle generator (dev / CI) ──────────────────────────────
 
 export function generateMockCandles(symbol: string, count = 100): CandleData[] {
-  const seed   = symbol.charCodeAt(0) * 1000
-  const base   = symbol.startsWith('BTC') ? 65000 : symbol.startsWith('ETH') ? 3400 : 100
-  const candles: CandleData[] = []
-  let price = base
+  import ccxt from 'ccxt'
 
-  const now = Date.now()
-  for (let i = count; i >= 0; i--) {
-    const change = (Math.sin(i / 8 + seed) + Math.random() - 0.48) * base * 0.008
-    price = Math.max(base * 0.5, price + change)
-    const high = price * (1 + Math.random() * 0.005)
-    const low  = price * (1 - Math.random() * 0.005)
-    candles.push({
-      timestamp: now - i * 3600000,
-      open:      price - change,
-      high,
-      low,
-      close:     price,
-      volume:    base * (0.5 + Math.random()),
-    })
+// ── Exchange factory ───────────────────────────────────────────────
+function getExchange() {
+  return new ccxt.binance({
+    apiKey:    process.env.BINANCE_API_KEY,
+    secret:    process.env.BINANCE_SECRET_KEY,
+    options:   { defaultType: 'spot' },
+    enableRateLimit: true,
+  })
+}
+
+// ── Fetch real candles from Binance ────────────────────────────────
+export async function fetchCandles(
+  symbol: string,
+  timeframe = '1h',
+  limit = 200
+): Promise<CandleData[]> {
+  try {
+    const exchange = getExchange()
+    const ohlcv = await exchange.fetchOHLCV(symbol, timeframe, undefined, limit)
+    return ohlcv.map(([timestamp, open, high, low, close, volume]) => ({
+      timestamp: timestamp as number,
+      open:      open   as number,
+      high:      high   as number,
+      low:       low    as number,
+      close:     close  as number,
+      volume:    volume as number,
+    }))
+  } catch (err) {
+    console.error('[Binance fetchCandles error]', err)
+    // Fallback sur mock si erreur
+    return generateMockCandles(symbol, limit)
   }
-  return candles
+}
+
+// ── Fetch live ticker ──────────────────────────────────────────────
+export async function fetchTicker(symbol: string) {
+  try {
+    const exchange = getExchange()
+    const ticker = await exchange.fetchTicker(symbol)
+    return {
+      symbol,
+      price:    ticker.last    ?? 0,
+      change24h: ticker.percentage ?? 0,
+      volume24h: ticker.quoteVolume ?? 0,
+      high24h:   ticker.high   ?? 0,
+      low24h:    ticker.low    ?? 0,
+    }
+  } catch (err) {
+    console.error('[Binance fetchTicker error]', err)
+    return null
+  }
+}
+
+// ── Fetch account balance ──────────────────────────────────────────
+export async function fetchBalance() {
+  try {
+    const exchange = getExchange()
+    const balance = await exchange.fetchBalance()
+    return balance.total
+  } catch (err) {
+    console.error('[Binance fetchBalance error]', err)
+    return null
+  }
+}
+
+// ── Place real order ───────────────────────────────────────────────
+export async function placeOrder(
+  symbol: string,
+  side: 'buy' | 'sell',
+  quantity: number
+) {
+  try {
+    const exchange = getExchange()
+    const order = await exchange.createMarketOrder(symbol, side, quantity)
+    console.log('[Order placed]', order)
+    return order
+  } catch (err) {
+    console.error('[Binance placeOrder error]', err)
+    throw err
+  }
+}
 }
