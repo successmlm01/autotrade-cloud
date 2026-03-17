@@ -1,0 +1,83 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand:       #22c55e;
+  --brand-dim:   #16a34a;
+  --surface:     #0a0a0f;
+  --card:        #111118;
+  --border:      #1e1e2e;
+  --text-muted:  #6b7280;
+  --text-dim:    #9ca3af;
+  --up:          #22c55e;
+  --down:        #ef4444;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--surface);
+  color: #f1f5f9;
+  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+}
+
+.card {
+  background:    var(--card);
+  border:        1px solid var(--border);
+  border-radius: 12px;
+}
+
+.card-sm {
+  background:    var(--card);
+  border:        1px solid var(--border);
+  border-radius: 8px;
+  padding:       16px;
+}
+
+.badge-buy  { background: rgba(34,197,94,.15);  color: #4ade80;  border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.badge-sell { background: rgba(239,68,68,.15);  color: #f87171;  border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 600; }
+.badge-neutral { background: rgba(107,114,128,.2); color: #9ca3af; border-radius: 999px; padding: 2px 10px; font-size: 12px; }
+
+.pnl-up   { color: var(--up); }
+.pnl-down { color: var(--down); }
+
+.btn-primary {
+  background: var(--brand);
+  color: #000;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: opacity .15s;
+}
+.btn-primary:hover  { opacity: .85; }
+.btn-primary:active { transform: scale(.98); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,.05); color: #fff; }
+
+/* scrollbar */
+::-webkit-scrollbar       { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* pulse dot */
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .5; transform: scale(1.4); }
+}
+.pulse-dot { animation: pulse-dot 1.5s ease-in-out infinite; }
+
+/* grid layout helpers */
+.grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
